@@ -38,6 +38,20 @@ define Device/comtrend_vr-3032u
 endef
 TARGET_DEVICES += comtrend_vr-3032u
 
+define Device/ovislink_ov804wva
+  $(Device/bcm63xx-cfe)
+  DEVICE_VENDOR := OvisLink
+  DEVICE_MODEL := OV804WVA
+  DEVICE_LOADADDR := $(KERNEL_LOADADDR)
+  CHIP_ID := 63268
+  SOC := bcm63168
+  CFE_BOARD_ID := 963168GW_T182_B
+  FLASH_MB := 16
+  DEVICE_PACKAGES += $(USB2_PACKAGES) \
+    kmod-leds-bcm6328
+endef
+TARGET_DEVICES += ovislink_ov804wva
+
 define Device/sercomm_h500-s-lowi
   $(Device/sercomm-nand)
   DEVICE_VENDOR := Sercomm
