@@ -3,6 +3,6 @@
 #include "bcm6368-actiontec-1000h.dtsi"
 
 / {
-	model = "Actiontec R1000H";
-	compatible = "actiontec,r1000h", "brcm,bcm6368";
+	model = "Actiontec V1000H";
+	compatible = "actiontec,v1000h", "brcm,bcm6368";
 };

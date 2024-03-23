@@ -15,6 +15,21 @@ define Device/actiontec_r1000h
 endef
 TARGET_DEVICES += actiontec_r1000h
 
+define Device/actiontec_v1000h
+  $(Device/bcm63xx-cfe)
+  DEVICE_VENDOR := Actiontec
+  DEVICE_MODEL := V1000H
+  CHIP_ID := 6368
+  CFE_BOARD_ID := 96368VVW
+  BLOCKSIZE := 0x20000
+  FLASH_MB := 32
+  CFE_EXTRAS += --signature "$$(DEVICE_VENDOR)"
+  DEVICE_PACKAGES += $(USB2_PACKAGES) \
+    $(B43_PACKAGES) \
+    kmod-leds-gpio
+endef
+TARGET_DEVICES += actiontec_v1000h
+
 define Device/comtrend_vr-3025u
   $(Device/bcm63xx-cfe)
   DEVICE_VENDOR := Comtrend
