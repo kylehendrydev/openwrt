@@ -196,6 +196,7 @@ netgear,wn3100rp-v2)
 	ucidef_set_led_netdev "wifi_led" "wifi" "green:router" "wlan0"
 	;;
 netgear,ex3700|\
+netgear,ex6100-v1|\
 netgear,ex6130)
 	ucidef_set_led_netdev "wlan5g" "ROUTER (green)" "green:router" "wlan0"
 	ucidef_set_led_netdev "wlan2g" "DEVICE (green)" "green:device" "wlan1"
