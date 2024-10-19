@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
+#include "mt7620a_netgear_ex3x00_ex61xx.dtsi"
+
+/ {
+	compatible = "netgear,ex6100-v1", "ralink,mt7620a-soc";
+	model = "Netgear EX6100 v1";
+};
+
+&keys {
+	ap_ext {
+		label = "ap_ext";
+		gpios = <&gpio2 30 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&ethernet {
+        pinctrl-names = "default";
+        pinctrl-0 = <&rgmii1_pins &mdio_pins>;
+
+        port@5 {
+                status = "okay";
+                phy-handle = <&phy5>;
+                phy-mode = "rgmii";
+        };
+
+        mdio-bus {
+                status = "okay";
+
+                phy5: ethernet-phy@5 {
+                        reg = <5>;
+                        phy-mode = "rgmii";
+                };
+        };
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio3 {
+        status = "okay";
+};
+
+&pcie0 {
+	mt76@0,0 {
+		reg = <0x0000 0 0 0 0>;
+		nvmem-cells = <&eeprom_factory_8000>;
+		nvmem-cell-names = "eeprom";
+		ieee80211-freq-limit = <5000000 6000000>;
+	};
+};
