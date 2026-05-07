@@ -11,9 +11,10 @@ endef
 TARGET_DEVICES += asus_rt-ac53u
 
 define Device/asus_rt-ac66u
+  $(Device/standard-noloader-gz)
+  DEVICE_VENDOR := ASUS
   DEVICE_MODEL := RT-AC66U
   DEVICE_PACKAGES := kmod-b43 $(USB2_PACKAGES)
-  $(Device/asus)
   PRODUCTID := RT-AC66U
   DEFAULT := n
 endef
