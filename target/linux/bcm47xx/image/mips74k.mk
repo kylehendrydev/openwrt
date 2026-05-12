@@ -326,6 +326,15 @@ define Device/linksys_e4200-v1
 endef
 TARGET_DEVICES += linksys_e4200-v1
 
+define Device/linksys_ea2700-v1
+  $(Device/standard-noloader-gz)
+  DEVICE_VENDOR := Linksys
+  DEVICE_MODEL := EA2700
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-b43
+endef
+TARGET_DEVICES += linksys_ea2700-v1
+
 define Device/netgear_r6200-v1
   DEVICE_MODEL := R6200
   DEVICE_VARIANT := v1

@@ -68,6 +68,10 @@ fixup_linksys() {
 			[ "$COMMIT" = 1 ] && {
 				nvram_set sdram_ncdl 0x0
 			}
+		;;
+		"1323") #0x052b
+			nvram set partialboots=0
+			nvram commit
 	esac
 }
 
