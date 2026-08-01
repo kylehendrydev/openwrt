@@ -1,0 +1,45 @@
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: software node: allow passing reference args to PROPERTY_ENTRY_REF
+Date: Sun, 29 Mar 2026 19:27:49 -0700	[thread overview]
+Message-ID: <20260329-property-gpio-fix-v2-2-3cca5ba136d8@gmail.com> (raw)
+In-Reply-To: <20260329-property-gpio-fix-v2-0-3cca5ba136d8@gmail.com>
+
+When dynamically creating software nodes and properties for subsequent
+use with software_node_register() current implementation of
+PROPERTY_ENTRY_REF is not suitable because it creates a temporary
+instance of struct software_node_ref_args on stack which will later
+disappear, and software_node_register() only does shallow copy of
+properties.
+
+Fix this by allowing to pass address of reference arguments structure
+directly into PROPERTY_ENTRY_REF(), so that caller can manage lifetime
+of the object properly.
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ include/linux/property.h | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -470,12 +470,19 @@ struct property_entry {
+ #define PROPERTY_ENTRY_STRING(_name_, _val_)				\
+ 	__PROPERTY_ENTRY_ELEMENT(_name_, str, STRING, _val_)
+ 
++#define __PROPERTY_ENTRY_REF_ARGS(_ref_, ...)				\
++	_Generic(_ref_,							\
++		 const struct software_node_ref_args *: _ref_,		\
++		 struct software_node_ref_args *: _ref_,		\
++		 default: &SOFTWARE_NODE_REFERENCE(_ref_,		\
++						   ##__VA_ARGS__))
++
+ #define PROPERTY_ENTRY_REF(_name_, _ref_, ...)				\
+ (struct property_entry) {						\
+ 	.name = _name_,							\
+ 	.length = sizeof(struct software_node_ref_args),		\
+ 	.type = DEV_PROP_REF,						\
+-	{ .pointer = &SOFTWARE_NODE_REFERENCE(_ref_, ##__VA_ARGS__), },	\
++	{ .pointer = __PROPERTY_ENTRY_REF_ARGS(_ref_, ##__VA_ARGS__) },	\
+ }
+ 
+ #define PROPERTY_ENTRY_BOOL(_name_)		\

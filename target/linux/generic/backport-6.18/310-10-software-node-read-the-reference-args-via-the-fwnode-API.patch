@@ -1,0 +1,34 @@
+From f11a8e996d5e27a85e8d7a05484db2942c267615 Mon Sep 17 00:00:00 2001
+From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Date: Thu, 20 Nov 2025 14:23:56 +0100
+Subject: [PATCH] software node: read the reference args via the fwnode API
+
+Once we allow software nodes to reference all kinds of firmware nodes,
+the refnode here will no longer necessarily be a software node so read
+its proprties going through its fwnode implementation.
+
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Tested-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/base/swnode.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -540,9 +540,7 @@ software_node_get_reference_args(const s
+ 		return -ENOENT;
+ 
+ 	if (nargs_prop) {
+-		error = property_entry_read_int_array(ref->node->properties,
+-						      nargs_prop, sizeof(u32),
+-						      &nargs_prop_val, 1);
++		error = fwnode_property_read_u32(refnode, nargs_prop, &nargs_prop_val);
+ 		if (error)
+ 			return error;
+ 

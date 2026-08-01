@@ -1,0 +1,121 @@
+From 430efd697374891bbb289054580c29144cfc69f8 Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Mon, 13 Jul 2026 14:58:23 -0700
+Subject: ssb: gpio: Add and register software node for GPIO controller
+
+We want to convert the legacy gpio-keys platform device on BCM47XX
+boards to use software nodes. To do this properly and allow
+referencing the GPIO controller by address rather than relying on
+name-based matching (which is being removed from the gpiolib core),
+we need to associate the GPIO controller with a software node.
+
+Introduce ssb_gpio_swnode, register it, and associate it with the
+gpio_chip.
+
+Assisted-by: Antigravity:gemini-3.5-flash
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Tested-by: Waldemar Brodkorb <wbx@openadk.org>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+---
+ drivers/ssb/driver_gpio.c | 48 ++++++++++++++++++++++++++++++++++++++++-------
+ include/linux/ssb/ssb.h   |  2 ++
+ 2 files changed, 43 insertions(+), 7 deletions(-)
+
+--- a/drivers/ssb/driver_gpio.c
++++ b/drivers/ssb/driver_gpio.c
+@@ -15,8 +15,14 @@
+ #include <linux/interrupt.h>
+ #include <linux/irqdomain.h>
+ #include <linux/export.h>
++#include <linux/property.h>
+ #include <linux/ssb/ssb.h>
+ 
++const struct software_node ssb_gpio_swnode = {
++	.name = "ssb-gpio",
++};
++EXPORT_SYMBOL_GPL(ssb_gpio_swnode);
++
+ 
+ /**************************************************
+  * Shared
+@@ -232,6 +238,8 @@ static int ssb_gpio_chipco_init(struct s
+ 	chip->to_irq		= ssb_gpio_to_irq;
+ #endif
+ 	chip->ngpio		= 16;
++	if (bus->bustype == SSB_BUSTYPE_SSB)
++		chip->fwnode	= software_node_fwnode(&ssb_gpio_swnode);
+ 	/* There is just one SoC in one device and its GPIO addresses should be
+ 	 * deterministic to address them more easily. The other buses could get
+ 	 * a random base number.
+@@ -433,10 +441,12 @@ static int ssb_gpio_extif_init(struct ss
+ 	 * deterministic to address them more easily. The other buses could get
+ 	 * a random base number.
+ 	 */
+-	if (bus->bustype == SSB_BUSTYPE_SSB)
+-		chip->base		= 0;
+-	else
+-		chip->base		= -1;
++	if (bus->bustype == SSB_BUSTYPE_SSB) {
++		chip->base	= 0;
++		chip->fwnode	= software_node_fwnode(&ssb_gpio_swnode);
++	} else {
++		chip->base	= -1;
++	}
+ 
+ 	err = ssb_gpio_irq_extif_domain_init(bus);
+ 	if (err)
+@@ -464,11 +474,33 @@ static int ssb_gpio_extif_init(struct ss
+ 
+ int ssb_gpio_init(struct ssb_bus *bus)
+ {
++	int err = 0;
++
++	/*
++	 * Register software node only for the host SoC bus. There is only
++	 * one SoC instance in the system, so there are no concerns with
++	 * registration conflicts.
++	 */
++	if (bus->bustype == SSB_BUSTYPE_SSB) {
++		err = software_node_register(&ssb_gpio_swnode);
++		if (err)
++			return err;
++	}
++
+ 	if (ssb_chipco_available(&bus->chipco))
+-		return ssb_gpio_chipco_init(bus);
++		err = ssb_gpio_chipco_init(bus);
+ 	else if (ssb_extif_available(&bus->extif))
+-		return ssb_gpio_extif_init(bus);
+-	return -1;
++		err = ssb_gpio_extif_init(bus);
++	else
++		err = -ENODEV;
++
++	if (err) {
++		if (bus->bustype == SSB_BUSTYPE_SSB)
++			software_node_unregister(&ssb_gpio_swnode);
++		return err;
++	}
++
++	return 0;
+ }
+ 
+ int ssb_gpio_unregister(struct ssb_bus *bus)
+@@ -476,6 +508,8 @@ int ssb_gpio_unregister(struct ssb_bus *
+ 	if (ssb_chipco_available(&bus->chipco) ||
+ 	    ssb_extif_available(&bus->extif)) {
+ 		gpiochip_remove(&bus->gpio);
++		if (bus->bustype == SSB_BUSTYPE_SSB)
++			software_node_unregister(&ssb_gpio_swnode);
+ 		return 0;
+ 	}
+ 	return -1;
+--- a/include/linux/ssb/ssb.h
++++ b/include/linux/ssb/ssb.h
+@@ -671,4 +671,6 @@ int ssb_pcibios_plat_dev_init(struct pci
+ int ssb_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
+ #endif /* CONFIG_SSB_EMBEDDED */
+ 
++extern const struct software_node ssb_gpio_swnode;
++
+ #endif /* LINUX_SSB_H_ */

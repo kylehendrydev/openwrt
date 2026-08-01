@@ -1,0 +1,48 @@
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: software node: verify that property data is not on stack
+Date: Sun, 29 Mar 2026 19:27:50 -0700	[thread overview]
+Message-ID: <20260329-property-gpio-fix-v2-3-3cca5ba136d8@gmail.com> (raw)
+In-Reply-To: <20260329-property-gpio-fix-v2-0-3cca5ba136d8@gmail.com>
+
+When registering a software node, ensure that the property data is not
+located on the stack, as it is expected to persist for the lifetime of
+the node.
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/base/swnode.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -16,6 +16,7 @@
+ #include <linux/kstrtox.h>
+ #include <linux/list.h>
+ #include <linux/property.h>
++#include <linux/sched/task_stack.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+@@ -917,6 +918,7 @@ EXPORT_SYMBOL_GPL(software_node_unregist
+ int software_node_register(const struct software_node *node)
+ {
+ 	struct swnode *parent = software_node_to_swnode(node->parent);
++	const struct property_entry *prop;
+ 
+ 	if (software_node_to_swnode(node))
+ 		return -EEXIST;
+@@ -924,6 +926,14 @@ int software_node_register(const struct
+ 	if (node->parent && !parent)
+ 		return -EINVAL;
+ 
++	for (prop = node->properties; prop && prop->name; prop++) {
++		if (!prop->is_inline && object_is_on_stack(prop->pointer)) {
++			pr_err("%s: property data can't be on stack ('%s')\n",
++			       __func__, prop->name);
++			return -EINVAL;
++		}
++	}
++
+ 	return PTR_ERR_OR_ZERO(swnode_register(node, parent, 0));
+ }
+ EXPORT_SYMBOL_GPL(software_node_register);

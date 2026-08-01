@@ -1,0 +1,55 @@
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH v2 2/3] driver core: platform: allow attaching software nodes when creating devices
+Date: Fri, 13 Feb 2026 18:52:44 -0800	[thread overview]
+Message-ID: <20260214025246.2095239-3-dmitry.torokhov@gmail.com> (raw)
+In-Reply-To: <20260214025246.2095239-1-dmitry.torokhov@gmail.com>
+
+Extend platform_device_info structure with an optional pointer to a
+software node to be used as a secondary firmware node for the device
+being created. If software node has not been registered yet it will be
+automatically registered.
+
+This reduces boilerplate needed when switching legacy board code to
+static device properties/GPIO references.
+
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/base/platform.c         | 9 ++++++++-
+ include/linux/platform_device.h | 7 ++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
+
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -808,6 +808,9 @@ struct platform_device *platform_device_
+ 	int ret;
+ 	struct platform_device *pdev;
+ 
++	if (pdevinfo->swnode && pdevinfo->properties)
++		return ERR_PTR(-EINVAL);
++
+ 	pdev = platform_device_alloc(pdevinfo->name, pdevinfo->id);
+ 	if (!pdev)
+ 		return ERR_PTR(-ENOMEM);
+@@ -833,7 +836,11 @@ struct platform_device *platform_device_
+ 	if (ret)
+ 		goto err;
+ 
+-	if (pdevinfo->properties) {
++	if (pdevinfo->swnode) {
++		ret = device_add_software_node(&pdev->dev, pdevinfo->swnode);
++		if (ret)
++			goto err;
++	} else if (pdevinfo->properties) {
+ 		ret = device_create_managed_software_node(&pdev->dev,
+ 							  pdevinfo->properties, NULL);
+ 		if (ret)
+--- a/include/linux/platform_device.h
++++ b/include/linux/platform_device.h
+@@ -126,6 +126,7 @@ struct platform_device_info {
+ 		size_t size_data;
+ 		u64 dma_mask;
+ 
++		const struct software_node *swnode;
+ 		const struct property_entry *properties;
+ };
+ extern struct platform_device *platform_device_register_full(
