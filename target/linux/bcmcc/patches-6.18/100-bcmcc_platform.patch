@@ -1,0 +1,71 @@
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index d7c67cebe065..7c7bdbe34410 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -314,6 +314,34 @@ config BCM47XX
+ 	help
+ 	  Support for BCM47XX based boards
+ 
++config MACH_BCMCC
++	bool "Broadcom Chipcommon based SoCs"
++	select MIPS_GENERIC
++	select MACH_GENERIC_CORE
++	select BOOT_RAW
++	select CEVT_R4K
++	select CSRC_R4K
++	select DMA_NONCOHERENT
++	select HAVE_PCI
++	select PCI_DRIVERS_GENERIC
++	select IRQ_MIPS_CPU
++	select SYS_HAS_CPU_MIPS32_R1
++	select SYS_HAS_CPU_MIPS32_R2
++	select NO_EXCEPT_FILL
++	select SYS_SUPPORTS_32BIT_KERNEL
++	select SYS_SUPPORTS_LITTLE_ENDIAN
++	select SYS_SUPPORTS_MIPS16
++	select SYS_SUPPORTS_ZBOOT
++	select SYS_HAS_EARLY_PRINTK
++	select USE_GENERIC_EARLY_PRINTK_8250
++	select BUILTIN_DTB
++	select MIPS_CMDLINE_FROM_DTB
++	select GPIOLIB
++	select PINCTRL
++	select USE_OF
++	help
++	  Support for BCM47XX/BCM53XX based boards
++
+ config BCM63XX
+ 	bool "Broadcom BCM63XX based boards"
+ 	select BOOT_RAW
+@@ -2103,7 +2131,7 @@ config MIPS_VA_BITS_48
+ 
+ config ZBOOT_LOAD_ADDRESS
+ 	hex "Compressed kernel load address"
+-	default 0xffffffff80400000 if BCM47XX
++	default 0xffffffff80400000 if BCM47XX || MACH_BCMCC
+ 	default 0x0
+ 	depends on SYS_SUPPORTS_ZBOOT
+ 	help
+diff --git a/arch/mips/generic/Makefile b/arch/mips/generic/Makefile
+index ea0e4ad5e600..2adefc6d01b4 100644
+--- a/arch/mips/generic/Makefile
++++ b/arch/mips/generic/Makefile
+@@ -14,3 +14,4 @@ obj-$(CONFIG_LEGACY_BOARD_OCELOT)	+= board-ocelot.o
+ obj-$(CONFIG_MACH_INGENIC)			+= board-ingenic.o
+ obj-$(CONFIG_VIRT_BOARD_RANCHU)		+= board-ranchu.o
+ obj-$(CONFIG_MACH_REALTEK_RTL)		+= board-realtek.o
++obj-$(CONFIG_MACH_BCMCC)		+= board-bcmcc.o
+\ No newline at end of file
+diff --git a/arch/mips/generic/Platform b/arch/mips/generic/Platform
+index 0c03623f3897..ca676d0d1b24 100644
+--- a/arch/mips/generic/Platform
++++ b/arch/mips/generic/Platform
+@@ -12,7 +12,7 @@
+ cflags-$(CONFIG_MACH_INGENIC_SOC)	+= -I$(srctree)/arch/mips/include/asm/mach-ingenic
+ cflags-$(CONFIG_MIPS_GENERIC)	+= -I$(srctree)/arch/mips/include/asm/mach-generic
+ 
+-load-$(CONFIG_MIPS_GENERIC)	+= 0xffffffff80100000
++load-$(CONFIG_MIPS_GENERIC)	+= 0xffffffff80001000
+ all-$(CONFIG_MIPS_GENERIC)	+= vmlinux.gz.itb
+ 
+ its-y					:= vmlinux.its.S

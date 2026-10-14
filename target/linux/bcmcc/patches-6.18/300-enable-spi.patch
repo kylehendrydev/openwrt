@@ -1,0 +1,36 @@
+--- a/drivers/mtd/parsers/Kconfig
++++ b/drivers/mtd/parsers/Kconfig
+@@ -151,7 +151,7 @@ config MTD_PARSER_TPLINK_SAFELOADER
+ 
+ config MTD_PARSER_TRX
+ 	tristate "Parser for TRX format partitions"
+-	depends on MTD && (BCM47XX || ARCH_BCM_5301X || ARCH_MEDIATEK || RALINK || COMPILE_TEST)
++	depends on MTD && (BCM47XX || MACH_BCMCC || ARCH_BCM_5301X || ARCH_MEDIATEK || RALINK || COMPILE_TEST)
+ 	help
+ 	  TRX is a firmware format used by Broadcom on their devices. It
+ 	  may contain up to 3/4 partitions (depending on the version).
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -239,6 +239,12 @@ config SPI_BCM63XX_HSSPI
+ 	  This enables support for the High Speed SPI controller present on
+ 	  newer Broadcom BCM63XX SoCs.
+ 
++config SPI_BCM_CC
++	tristate "Broadcom CC SPI Flash Controller"
++	depends on MACH_BCMCC || COMPILE_TEST
++	help
++	  This enables the serial flash controller on BCM47XX/BCM53XX SoCs
++
+ config SPI_BCM_QSPI
+ 	tristate "Broadcom BSPI and MSPI controller support"
+ 	depends on ARCH_BRCMSTB || ARCH_BCM || ARCH_BCM_IPROC || \
+--- a/drivers/spi/Makefile
++++ b/drivers/spi/Makefile
+@@ -37,6 +37,7 @@ obj-$(CONFIG_SPI_BCM2835AUX)		+= spi-bcm
+ obj-$(CONFIG_SPI_BCM63XX)		+= spi-bcm63xx.o
+ obj-$(CONFIG_SPI_BCM63XX_HSSPI)		+= spi-bcm63xx-hsspi.o
+ obj-$(CONFIG_SPI_BCMBCA_HSSPI)		+= spi-bcmbca-hsspi.o
++obj-$(CONFIG_SPI_BCM_CC)		+= spi-bcm-cc.o
+ obj-$(CONFIG_SPI_BCM_QSPI)		+= spi-iproc-qspi.o spi-brcmstb-qspi.o spi-bcm-qspi.o
+ obj-$(CONFIG_SPI_BITBANG)		+= spi-bitbang.o
+ obj-$(CONFIG_SPI_BUTTERFLY)		+= spi-butterfly.o

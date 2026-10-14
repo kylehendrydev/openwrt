@@ -1,0 +1,4 @@
+#ifndef _ASM_BCMCC_SPACES_H
+#define _ASM_BCMCC_SPACES_H
+
+#define HIGHMEM_START	_AC(0x8000000, UL)

@@ -1,0 +1,92 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+/dts-v1/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "brcm,bcm4718";
+
+	aliases {
+		spi1 = &spi0;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			compatible = "mips,mips74Kc";
+			device_type = "cpu";
+			reg = <0>;
+			clocks = <&cpuclk>;
+		};
+	};
+
+	/* TODO: drop these clocks once pmu is working */
+	baseclk: baseclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <20000000>;
+	};
+
+	cpuclk: cpuclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <453000000>;
+	};
+
+	cpu_intc: interrupt-controller {
+		#address-cells = <0>;
+		compatible = "mti,cpu-interrupt-controller";
+
+		interrupt-controller;
+		#interrupt-cells = <1>;
+	};
+
+	bcma@18000000 {
+		compatible = "simple-bus";
+		ranges = <0x0 0x18000000 0x6000000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		spi0: spi@40 {
+			compatible = "brcm,bcma-cc-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x40 0x10>;
+			direct = <0x1c000000 0x02000000>;
+		};
+
+		uart0: serial@300 {
+			compatible = "ns16550a";
+			reg = <0x300 0x100>;
+
+			clocks = <&baseclk>;
+
+			reg-shift = <0>;
+
+			interrupt-parent = <&intc>;
+			interrupts = <0>;
+		};
+
+		clock: clock-controller@600 {
+			compatible = "brcm,bcm4718-cc-pmu";
+			reg = <0x600 0x100>;
+			#clock-cells = <1>;
+		};
+
+		intc: interrupt-controller@3000 {
+			compatible = "brcm,bcma-cc-intc";
+			reg = <0x3000 0x200>, <0x20 0x08>;
+			interrupt-controller;
+			#interrupt-cells = <1>;
+
+			interrupt-parent = <&cpu_intc>;
+			interrupts = <2>;
+		};
+	};
+};
+

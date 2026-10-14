@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+/dts-v1/;
+
+#include "bcm4718.dtsi"
+
+/ {
+	compatible = "netgear,wnr3500l-na-v1", "brcm,bcm4718";
+	model = "Netgear WNR3500L NA v1";
+
+	aliases {
+                serial0 = &uart0;
+        };
+
+        chosen {
+                bootargs = "earlycon console=ttyS0,115200";
+		stdout-path = "serial0:115200n8";
+        };
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x4000000>;
+	};
+};
+
+&spi0 {
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+
+		/* Is this useful? */
+		m25p,fast-read;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "boot";
+				reg = <0x000000 0x040000>;
+				read-only;
+			};
+
+			partition@40000 {
+				label = "firmware";
+				compatible = "brcm,trx";
+				reg = <0x40000 0x7b0000>;
+			};
+
+			partition@7f0000 {
+                                label = "nvram";
+                                reg = <0x7f0000 0x10000>;
+                                read-only;
+                        };
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
